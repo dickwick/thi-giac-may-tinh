@@ -1,32 +1,68 @@
+
 /* nền */
 .stApp {
-    background: linear-gradient(135deg,#0f172a,#020617);
+    background: linear-gradient(135deg,#020617,#0f172a);
     color: white;
 }
 
-/* tiêu đề */
-.title {
+/* header */
+.header{
     text-align:center;
+    margin-bottom:30px;
+}
+
+.title{
     font-size:48px;
     font-weight:700;
 }
 
-/* card kết quả */
-.result-box{
-    background:#064e3b;
-    padding:20px;
-    border-radius:10px;
-    font-size:22px;
+.subtitle{
+    color:#94a3b8;
 }
 
-/* upload box */
+/* upload */
 [data-testid="stFileUploader"]{
-    background:#1e293b;
+    background:#020617;
+    border:1px solid #334155;
+    padding:25px;
+    border-radius:15px;
+}
+
+/* card */
+.result-card{
+    background:linear-gradient(135deg,#065f46,#064e3b);
+    padding:25px;
+    border-radius:15px;
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.animal-name{
+    font-size:32px;
+    font-weight:700;
+}
+
+.confidence{
+    font-size:20px;
+    color:#bbf7d0;
+}
+
+/* info */
+.info-card{
+    background:#020617;
+    border:1px solid #334155;
     padding:20px;
-    border-radius:12px;
+    border-radius:15px;
+}
+
+/* footer */
+.footer{
+    text-align:center;
+    margin-top:30px;
+    color:#94a3b8;
 }
 
 /* ảnh */
 img{
-    border-radius:12px;
+    border-radius:15px;
 }
