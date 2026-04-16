@@ -4,23 +4,25 @@ from PIL import Image
 from torchvision import transforms
 from transformers import ViTForImageClassification
 import json
+import time
 
-# load css
 def load_css():
     with open("style.css", encoding="utf-8") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 load_css()
 
-st.markdown("<div class='title'>🐾 Nhận diện động vật AI</div>",unsafe_allow_html=True)
+st.markdown("""
+<div class='header'>
+    <div class='title'>🐾 Animal AI Recognition</div>
+    <div class='subtitle'>Vision Transformer Deep Learning Model</div>
+</div>
+""", unsafe_allow_html=True)
 
-st.write("Tải ảnh động vật để AI nhận diện")
-
-# load classes
+st.markdown("---")
 
 with open("classes.json") as f:
     classes = json.load(f)
-
 
 animal_vi = {
 "alligator": "Cá sấu Mỹ",
@@ -128,45 +130,131 @@ animal_vi = {
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 model = ViTForImageClassification.from_pretrained(
-"google/vit-base-patch16-224",
-num_labels=len(classes),
-ignore_mismatched_sizes=True
+    "google/vit-base-patch16-224",
+    num_labels=len(classes),
+    ignore_mismatched_sizes=True
 )
 
-model.load_state_dict(torch.load("model/vit_animals_best.pth", map_location=device))
+model.load_state_dict(
+    torch.load("model/vit_animals_best.pth", map_location=device)
+)
+
 model.to(device)
 model.eval()
 
 transform = transforms.Compose([
-transforms.Resize((224,224)),
-transforms.ToTensor()
+    transforms.Resize((224,224)),
+    transforms.ToTensor()
 ])
 
-file = st.file_uploader("📷 Tải ảnh lên", type=["jpg","png","jpeg"])
+col1, col2 = st.columns([1,1])
 
-if file:
+with col1:
 
-    image = Image.open(file).convert("RGB")
+    st.markdown("### 📷 Upload Image")
 
-    st.image(image,width=400)
+    file = st.file_uploader(
+        "Drag & Drop hoặc chọn ảnh",
+        type=["jpg","png","jpeg"]
+    )
 
-    img = transform(image).unsqueeze(0).to(device)
+    if file:
 
-    with torch.no_grad():
+        image = Image.open(file).convert("RGB")
 
-        outputs = model(img).logits
+        st.image(image, use_container_width=True)
 
-        probs = torch.softmax(outputs, dim=1)[0]
+with col2:
+
+    st.markdown("### 🤖 Prediction")
+
+    if file:
+
+        with st.spinner("AI đang phân tích..."):
+
+            time.sleep(0.4)
+
+            img = transform(image).unsqueeze(0).to(device)
+
+            with torch.no_grad():
+
+                outputs = model(img).logits
+
+                probs = torch.softmax(outputs, dim=1)[0]
 
         pred = torch.argmax(probs).item()
 
         confidence = float(probs[pred])*100
 
-    label_en = classes[pred]
+        label_en = classes[pred]
 
-    label_vi = animal_vi.get(label_en,label_en)
+        label_vi = animal_vi.get(label_en,label_en)
 
-    st.markdown(
-        f"<div class='result-box'>🐾 Dự đoán: <b>{label_vi}</b><br>Độ tin cậy: {confidence:.2f}%</div>",
-        unsafe_allow_html=True
-    )
+        st.markdown(
+            f"""
+            <div class='result-card'>
+                <div class='animal-name'>
+                {label_vi}
+                </div>
+
+                <div class='confidence'>
+                Confidence: {confidence:.2f}%
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.progress(confidence/100)
+
+        st.markdown("### Top predictions")
+
+        top5 = torch.topk(probs,5)
+
+        for i in range(5):
+
+            name = animal_vi.get(
+                classes[top5.indices[i]],
+                classes[top5.indices[i]]
+            )
+
+            prob = float(top5.values[i])*100
+
+            st.write(f"{name} — {prob:.2f}%")
+
+            st.progress(prob/100)
+
+st.markdown("---")
+
+st.markdown("""
+<div class='info-card'>
+
+### Model Information
+
+Architecture:
+Vision Transformer (ViT)
+
+Dataset:
+~7000 animal images
+
+Classes:
+100 animals
+
+Framework:
+PyTorch + HuggingFace
+
+Hardware:
+GPU supported
+
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class='footer'>
+
+AI Animal Recognition
+
+Streamlit Interface
+
+</div>
+""", unsafe_allow_html=True)
